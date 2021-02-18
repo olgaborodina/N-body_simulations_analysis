@@ -41,16 +41,11 @@ def dmdr_profile_3D(r, ro0, a, gamma):
     return dehnen_profile_3D(r, ro0, a, gamma) * 4 * np.pi * r ** 2
 
 def get_dmdr(folder, i, r_e):
-    
-    names = np.array(['M', 'x', 'y', 'z', 'vx', 'vy', 'vz', 'M_ini', 'Z', 'Nan', 'Event',
-                  'M_', 'Nan3', 'Nan4', 'Nan5', 'Nan6', 'Nan7', 'Nan8'])
-    
-    cluster = pd.read_csv(folder / get_filename(i), 
-                          index_col=0, delimiter='\s+', header=3, names=names)
-    cluster = normalize_cluster(cluster)
 
     density_cs = pd.read_csv(folder / 'def-dc.dat', delimiter='\s+', index_col=0, header=None)
     xc, yc, zc = density_cs.iloc[i, 1:4]
+    
+    cluster = limit_by_status(folder, i)
     
     r_sort = np.sort(np.sqrt((cluster['x'] - xc) ** 2 + 
                              (cluster['y'] - yc) ** 2 + 
@@ -60,6 +55,22 @@ def get_dmdr(folder, i, r_e):
     n_smoothed = csaps(r_sort, n, smooth=1 - 1e-4)
     dmdr = n_smoothed(r_e, 1)
     return dmdr
+
+def limit_by_status(folder, i):
+    names = np.array(['M', 'x', 'y', 'z', 'vx', 'vy', 'vz', 'M_ini', 'Z', 'Nan', 'Event',
+                  'M_', 'Nan3', 'Nan4', 'Nan5', 'Nan6', 'Nan7', 'Nan8'])
+    names_vir = np.array(['index', 'x', 'y', 'z', 'vx', 'vy', 'vz', 'd', 'M', 'n_cum', 'Status', 
+                      'U', 'K', 'vir', 'count', 'pot', 'ax', 'ay', 'az', 'potc', 'pot_ext','ax_ext', 'ay_ext',
+                      'az_ext', 'potc_extc'])
+    cluster = pd.read_csv(folder / get_filename(i), 
+                          index_col=0, delimiter='\s+', header=3, names=names)
+    cluster = normalize_cluster(cluster)
+    
+    cluster_vir = pd.read_csv(folder / Path(get_filename(i).split('.')[0] + '.vir'), 
+                          index_col=0, delimiter='\s+', names=names_vir)
+    
+    return cluster[cluster_vir.sort_values('index')['Status'] > 0]
+    
 
 
 def normalize_cluster(cluster):
