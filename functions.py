@@ -54,6 +54,10 @@ def get_dmdr(folder, i, r_e):
     n = np.arange(len(r_sort)) + 1
     n_smoothed = csaps(r_sort, n, smooth=1 - 1e-4)
     dmdr = n_smoothed(r_e, 1)
+    
+    mask_negative = (dmdr <= 0)
+    dmdr[mask_negative] = 1e-6
+    
     return dmdr
 
 def limit_by_status(folder, i):
@@ -63,13 +67,17 @@ def limit_by_status(folder, i):
                       'U', 'K', 'vir', 'count', 'pot', 'ax', 'ay', 'az', 'potc', 'pot_ext','ax_ext', 'ay_ext',
                       'az_ext', 'potc_extc'])
     cluster = pd.read_csv(folder / get_filename(i), 
-                          index_col=0, delimiter='\s+', header=3, names=names)
+                          index_col=0, delimiter='\s+', header=2, names=names)
     cluster = normalize_cluster(cluster)
     
     cluster_vir = pd.read_csv(folder / Path(get_filename(i).split('.')[0] + '.vir'), 
-                          index_col=0, delimiter='\s+', names=names_vir)
+                      index_col=0, delimiter='\s+', names=names_vir)
     
-    return cluster[cluster_vir.sort_values('index')['Status'] > 0]
+    assert len(cluster_vir) == len(cluster), '.dat and .vir files have different size'
+
+    mask_status = (cluster_vir.sort_values('index')['Status'] > 0)
+    
+    return cluster[mask_status]
     
 
 
