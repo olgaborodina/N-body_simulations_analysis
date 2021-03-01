@@ -25,29 +25,29 @@ def king_profile(r, r_tidal, r_center, k):
     return profile
 
 
-def dehnen_profile(r, ro0, a, gamma, dim):
+def dehnen_profile(r, ro0, a, gamma, beta, dim):
     if dim == 2:
         zeta = np.geomspace(1e-10, 30000, 10001)
         eta = r / a
         ETA, ZETA = np.meshgrid(eta, zeta)
         S = integrate.simps(np.power(ZETA ** 2 + ETA ** 2, - gamma/2) * 
-                            np.power(1 + np.sqrt(ZETA ** 2 + ETA ** 2), gamma - 4),
+                            np.power(1 + np.sqrt(ZETA ** 2 + ETA ** 2), gamma - beta),
                             x=zeta, axis=0)
         return 2 * ro0 * a * S
     elif dim == 3:
-        return ro0 * (r / a) ** (- gamma) * (1 + r / a) ** (gamma - 4)
+        return ro0 * (r / a) ** (- gamma) * (1 + r / a) ** (gamma - beta)
     else: raise ValueError ('Wrong dimension')
         
 
-def dmdr_profile(r, ro0, a, gamma, dim):
+def dmdr_profile(r, ro0, a, gamma, beta, dim):
     if dim == 2:
-        return dehnen_profile(r, ro0, a, gamma, dim) * 2 * np.pi * r
+        return dehnen_profile(r, ro0, a, gamma, beta, dim) * 2 * np.pi * r
     elif dim == 3:
-        return dehnen_profile(r, ro0, a, gamma, dim) * 4 * np.pi * r ** 2
+        return dehnen_profile(r, ro0, a, gamma, beta, dim) * 4 * np.pi * r ** 2
     else: raise ValueError ('Wrong dimension')
         
-def log_dmdr_profile(r, ro0, a, gamma, dim):
-    return np.log10(dmdr_profile(r, ro0, a, gamma, dim))
+def log_dmdr_profile(r, ro0, a, gamma, beta, dim):
+    return np.log10(dmdr_profile(r, ro0, a, gamma, beta, dim))
 
 # def dehnen_profile_2D(r, ro0, a, gamma):
 #     zeta = np.geomspace(1e-10, 30000, 10001)
