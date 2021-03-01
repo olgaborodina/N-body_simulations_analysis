@@ -24,32 +24,68 @@ def king_profile(r, r_tidal, r_center, k):
     
     return profile
 
-def dehnen_profile_2D(r, ro0, a, gamma):
-    zeta = np.geomspace(1e-10, 30000, 10001)
-    eta = r / a
-    ETA, ZETA = np.meshgrid(eta, zeta)
-    S = integrate.simps(np.power(ZETA ** 2 + ETA ** 2, - gamma/2) * np.power(1 + np.sqrt(ZETA ** 2 + ETA ** 2), gamma - 4), x=zeta, axis=0)
-    return 2 * ro0 * a * S
 
-def dehnen_profile_3D(r, ro0, a, gamma):
-    return ro0 * (r / a) ** (- gamma) * (1 + r / a) ** (gamma - 4)
+def dehnen_profile(r, ro0, a, gamma, dim):
+    if dim == 2:
+        zeta = np.geomspace(1e-10, 30000, 10001)
+        eta = r / a
+        ETA, ZETA = np.meshgrid(eta, zeta)
+        S = integrate.simps(np.power(ZETA ** 2 + ETA ** 2, - gamma/2) * 
+                            np.power(1 + np.sqrt(ZETA ** 2 + ETA ** 2), gamma - 4),
+                            x=zeta, axis=0)
+        return 2 * ro0 * a * S
+    elif dim == 3:
+        return ro0 * (r / a) ** (- gamma) * (1 + r / a) ** (gamma - 4)
+    else: raise ValueError ('Wrong dimension')
+        
 
-def dmdr_profile_2D(r, ro0, a, gamma):
-    return dehnen_profile_2D(r, ro0, a, gamma) * 2 * np.pi * r
+def dmdr_profile(r, ro0, a, gamma, dim):
+    if dim == 2:
+        return dehnen_profile(r, ro0, a, gamma, dim) * 2 * np.pi * r
+    elif dim == 3:
+        return dehnen_profile(r, ro0, a, gamma, dim) * 4 * np.pi * r ** 2
+    else: raise ValueError ('Wrong dimension')
+        
+def log_dmdr_profile(r, ro0, a, gamma, dim):
+    return np.log10(dmdr_profile(r, ro0, a, gamma, dim))
 
-def dmdr_profile_3D(r, ro0, a, gamma):
-    return dehnen_profile_3D(r, ro0, a, gamma) * 4 * np.pi * r ** 2
+# def dehnen_profile_2D(r, ro0, a, gamma):
+#     zeta = np.geomspace(1e-10, 30000, 10001)
+#     eta = r / a
+#     ETA, ZETA = np.meshgrid(eta, zeta)
+#     S = integrate.simps(np.power(ZETA ** 2 + ETA ** 2, - gamma/2) * np.power(1 + np.sqrt(ZETA ** 2 + ETA ** 2), gamma - 4), x=zeta, axis=0)
+#     return 2 * ro0 * a * S
 
-def get_dmdr(folder, i, r_e):
+# def dehnen_profile_3D(r, ro0, a, gamma):
+#     return ro0 * (r / a) ** (- gamma) * (1 + r / a) ** (gamma - 4)
+
+# def dmdr_profile_2D(r, ro0, a, gamma):
+#     return dehnen_profile_2D(r, ro0, a, gamma) * 2 * np.pi * r
+
+# def log_dmdr_profile_2D(r, ro0, a, gamma):
+#     return np.log10(dmdr_profile_2D(r, ro0, a, gamma))
+
+# def dmdr_profile_3D(r, ro0, a, gamma):
+#     return dehnen_profile_3D(r, ro0, a, gamma) * 4 * np.pi * r ** 2
+
+# def log_dmdr_profile_3D(r, ro0, a, gamma):
+#     return np.log10(dmdr_profile_3D(r, ro0, a, gamma))
+
+def get_dmdr(folder, i, r_e, dim):
 
     density_cs = pd.read_csv(folder / 'def-dc.dat', delimiter='\s+', index_col=0, header=None)
     xc, yc, zc = density_cs.iloc[i, 1:4]
     
     cluster = limit_by_status(folder, i)
     
-    r_sort = np.sort(np.sqrt((cluster['x'] - xc) ** 2 + 
-                             (cluster['y'] - yc) ** 2 + 
-                             (cluster['z'] - zc) ** 2))
+    if dim == 2:
+        r_sort = np.sort(np.sqrt((cluster['x'] - xc) ** 2 + 
+                                 (cluster['y'] - yc) ** 2))
+    elif dim == 3:
+        r_sort = np.sort(np.sqrt((cluster['x'] - xc) ** 2 + 
+                                 (cluster['y'] - yc) ** 2 + 
+                                 (cluster['z'] - zc) ** 2))
+    else: raise ValueError ('Wrong dimension')
     
     n = np.arange(len(r_sort)) + 1
     n_smoothed = csaps(r_sort, n, smooth=1 - 1e-4)
@@ -59,6 +95,47 @@ def get_dmdr(folder, i, r_e):
     dmdr[mask_negative] = 1e-6
     
     return dmdr
+
+
+# def get_dmdr(folder, i, r_e):
+
+#     density_cs = pd.read_csv(folder / 'def-dc.dat', delimiter='\s+', index_col=0, header=None)
+#     xc, yc, zc = density_cs.iloc[i, 1:4]
+    
+#     cluster = limit_by_status(folder, i)
+    
+#     r_sort = np.sort(np.sqrt((cluster['x'] - xc) ** 2 + 
+#                              (cluster['y'] - yc) ** 2 + 
+#                              (cluster['z'] - zc) ** 2))
+    
+#     n = np.arange(len(r_sort)) + 1
+#     n_smoothed = csaps(r_sort, n, smooth=1 - 1e-4)
+#     dmdr = n_smoothed(r_e, 1)
+    
+#     mask_negative = (dmdr <= 0)
+#     dmdr[mask_negative] = 1e-6
+    
+#     return dmdr
+
+
+# def get_dmdr_2D(folder, i, r_e):
+
+#     density_cs = pd.read_csv(folder / 'def-dc.dat', delimiter='\s+', index_col=0, header=None)
+#     xc, yc, zc = density_cs.iloc[i, 1:4]
+    
+#     cluster = limit_by_status(folder, i)
+    
+#     r_sort = np.sort(np.sqrt((cluster['x'] - xc) ** 2 + 
+#                              (cluster['y'] - yc) ** 2))
+    
+#     n = np.arange(len(r_sort)) + 1
+#     n_smoothed = csaps(r_sort, n, smooth=1 - 1e-4)
+#     dmdr = n_smoothed(r_e, 1)
+    
+#     mask_negative = (dmdr <= 0)
+#     dmdr[mask_negative] = 1e-6
+    
+#     return dmdr
 
 def limit_by_status(folder, i):
     names = np.array(['M', 'x', 'y', 'z', 'vx', 'vy', 'vz', 'M_ini', 'Z', 'Nan', 'Event',
@@ -79,7 +156,6 @@ def limit_by_status(folder, i):
     
     return cluster[mask_status]
     
-
 
 def normalize_cluster(cluster):
     
