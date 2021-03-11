@@ -1,13 +1,8 @@
 import matplotlib.pyplot as plt
-from itertools import cycle
-from matplotlib.pyplot import cm
-
 import numpy as np
 import pandas as pd
-from scipy.optimize import curve_fit
 from scipy import integrate
 from csaps import csaps
-
 from pathlib import Path
 
 def get_filename(snapshot):
