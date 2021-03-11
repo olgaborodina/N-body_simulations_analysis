@@ -152,7 +152,7 @@ def limit_by_status(folder, i):
     
     assert len(cluster_vir) == len(cluster), '.dat and .vir files have different size'
 
-    mask_status = (cluster_vir.sort_values('index')['Status'] > 0)
+    mask_status = (cluster_vir.sort_values('index')['Status'] > -1)
     
     return cluster[mask_status]
     
