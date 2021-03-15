@@ -1,0 +1,6 @@
+#!/bin/zsh
+
+for snap in {0..300}
+do
+        python3 profile_fit.py '2.0' '0.20' $snap --dim 3
+done
