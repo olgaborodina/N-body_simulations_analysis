@@ -1,8 +1,6 @@
 import argparse
 import sys
 import os
-import matplotlib.pyplot as plt
-from matplotlib.pyplot import cm
 import numpy as np
 import pandas as pd
 from pathlib import Path
@@ -24,7 +22,7 @@ if args.dim:
 else:
     dim = 3
 
-INPUT_DIR = Path(f'./../gamma={gamma_ini}/')
+INPUT_DIR = Path(f'/golowood-homes/Dehnen-mkhalo/gamma={gamma_ini}/')
 OUTPUT_DIR = Path(f'./gamma={gamma_ini}/')
 try:
     os.stat(OUTPUT_DIR)
@@ -58,14 +56,18 @@ best_fit = fmodel.fit(data=output['dmdr'], params=params, r=r_e)
 
 ro0, a, gamma, beta, alpha, dim = list(best_fit.params.valuesdict().values())
 
-ro0_err   = float(best_fit.fit_report().split('\n')[12].split('-')[1].split('(')[0])
-a_err     = float(best_fit.fit_report().split('\n')[13].split('-')[1].split('(')[0])
-gamma_err = float(best_fit.fit_report().split('\n')[14].split('-')[1].split('(')[0])
-beta_err  = float(best_fit.fit_report().split('\n')[15].split('-')[1].split('(')[0])
-alpha_err = float(best_fit.fit_report().split('\n')[16].split('-')[1].split('(')[0])
+try:
+    ro0_err   = float(best_fit.fit_report().split('\n')[12].split('+/-')[1].split('(')[0])
+    a_err     = float(best_fit.fit_report().split('\n')[13].split('+/-')[1].split('(')[0])
+    gamma_err = float(best_fit.fit_report().split('\n')[14].split('+/-')[1].split('(')[0])
+    beta_err  = float(best_fit.fit_report().split('\n')[15].split('+/-')[1].split('(')[0])
+    alpha_err = float(best_fit.fit_report().split('\n')[16].split('+/-')[1].split('(')[0])
+except: 
+    report = best_fit.fit_report().split('\n')[12:17]
+    print(f"problems with split! fit_report: \n {report}")
 
 output['fit'] = f.dmdr_profile(output['r'], ro0, a, gamma, beta, alpha, dim)
-output.to_csv(OUTPUT_DIR / f'fit_dmdr_gamma={gamma_ini}_{snap}_{dim}.csv', 
+output.to_csv(OUTPUT_DIR / f'fit_dmdr_gamma={gamma_ini}_{sfe}_{snap}_{dim}.csv', 
               index=False, sep=' ')
 
 popts_columns = ['snap', 'ro0', 'a', 'gamma', 'beta', 'alpha', 
@@ -73,9 +75,9 @@ popts_columns = ['snap', 'ro0', 'a', 'gamma', 'beta', 'alpha',
 popts = pd.DataFrame([[snap, ro0, a, gamma, beta, alpha, 
                        ro0_err, a_err, gamma_err, beta_err, alpha_err]], columns=popts_columns)
 try:
-    popts_output = pd.read_csv(OUTPUT_DIR / f'fit_popts_gamma={gamma_ini}_{dim}.csv', delimiter=' ', header=0)
+    popts_output = pd.read_csv(OUTPUT_DIR / f'fit_popts_gamma={gamma_ini}_{sfe}_{dim}.csv', delimiter=' ', header=0)
     popts_output = popts_output.append(popts)
 except:
     popts_output = popts.copy()
 
-popts_output.to_csv(OUTPUT_DIR / f'fit_popts_gamma={gamma_ini}_{dim}.csv', index=False, sep=' ')
+popts_output.to_csv(OUTPUT_DIR / f'fit_popts_gamma={gamma_ini}_{sfe}_{dim}.csv', index=False, sep=' ')
