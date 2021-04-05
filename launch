@@ -2,24 +2,138 @@
 
 echo "Starting gamma=2.0 processing"
 
-for snap in {0..400}
+for snap in {3..800}
 do
         python3 profile_fit.py '2.0' '0.20' $snap --dim 3
 done
 
 echo "SFE 0.20 done"
 
-for snap in {0..400}
+for snap in {3..800}
 do
         python3 profile_fit.py '2.0' '0.10' $snap --dim 3
 done
 
 echo "SFE 0.10 done"
 
-for snap in {0..400}
+for snap in {3..800}
 do
         python3 profile_fit.py '2.0' '0.05' $snap --dim 3
 done
 
 echo "SFE 0.05 done"
 
+echo "Starting gamma=1.5 processing"
+
+for snap in {3..800}
+do
+	python3 profile_fit.py '1.5' '0.20' $snap --dim 3
+done
+
+echo "SFE 0.20 done"
+
+for snap in {3..800}
+do
+        python3 profile_fit.py '1.5' '0.10' $snap --dim 3
+done
+
+echo "SFE 0.10 done"
+
+for snap in {3..800}
+do
+	python3 profile_fit.py '1.5' '0.05' $snap --dim 3
+done
+
+echo "SFE 0.05 done"
+
+echo "Starting gamma=2.5 processing"
+
+for snap in {3..800}
+do
+        python3 profile_fit.py '2.5' '0.20' $snap --dim 3
+done
+
+echo "SFE 0.20 done"
+
+for snap in {3..800}
+do
+        python3 profile_fit.py '2.5' '0.10' $snap --dim 3
+done
+
+echo "SFE 0.10 done"
+
+for snap in {3..800}
+do
+        python3 profile_fit.py '2.5' '0.05' $snap --dim 3
+done
+
+echo "SFE 0.05 done"
+
+echo "Starting gamma=1.0 processing"
+
+for snap in {3..800}
+do
+        python3 profile_fit.py '1.0' '0.20' $snap --dim 3
+done
+
+echo "SFE 0.20 done"
+
+for snap in {3..800}
+do
+        python3 profile_fit.py '1.0' '0.10' $snap --dim 3
+done
+
+echo "SFE 0.10 done"
+
+for snap in {3..800}
+do
+        python3 profile_fit.py '1.0' '0.05' $snap --dim 3
+done
+
+echo "SFE 0.05 done"
+
+echo "Starting gamma=0.5 processing"
+
+for snap in {3..800}
+do
+        python3 profile_fit.py '0.5' '0.20' $snap --dim 3
+done
+
+echo "SFE 0.20 done"
+
+for snap in {3..800}
+do
+        python3 profile_fit.py '0.5' '0.10' $snap --dim 3
+done
+
+echo "SFE 0.10 done"
+
+for snap in {3..800}
+do
+        python3 profile_fit.py '0.5' '0.05' $snap --dim 3
+done
+
+echo "SFE 0.05 done"
+
+echo "Starting gamma=0.0 processing"
+
+for snap in {3..800}
+do
+        python3 profile_fit.py '0.0' '0.20' $snap --dim 3
+done
+
+echo "SFE 0.20 done"
+
+for snap in {3..800}
+do
+        python3 profile_fit.py '0.0' '0.10' $snap --dim 3
+done
+
+echo "SFE 0.10 done"
+
+for snap in {3..800}
+do
+        python3 profile_fit.py '0.0' '0.05' $snap --dim 3
+done
+
+echo "SFE 0.05 done"
