@@ -56,8 +56,8 @@ for i in range(-n, n + 1):
 output['dmdr'] = dmdr_
 
 fmodel = Model(f.dmdr_profile)
-fmodel.set_param_hint('ro0',   value=500,  min=1,     max=40000.0)
-fmodel.set_param_hint('a',     value=1.0,  min=0.2,   max=10.0)
+fmodel.set_param_hint('ro0',   value=500,  min=0.1,     max=40000.0)
+fmodel.set_param_hint('a',     value=1.0,  min=0.1,   max=10.0)
 fmodel.set_param_hint('gamma', value=0.1,  min=1e-10, max=3.5)
 fmodel.set_param_hint('beta',  value=4.0,  min=2.0,   max=7.5)
 fmodel.set_param_hint('alpha', value=2.0,  min=0.5,   max=6.0)

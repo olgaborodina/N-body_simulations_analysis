@@ -92,7 +92,7 @@ def limit_by_status(folder, i):
 
 def normalize_cluster(cluster):
     
-    R_norm = 1.2262963200 #pc
+    R_norm = 0.93985917 #pc
     V_norm = 4.587330615 #km/s
     M_norm = 6.0e3 #Msun
     
