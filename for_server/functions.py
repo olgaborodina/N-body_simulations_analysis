@@ -48,7 +48,7 @@ def log_dmdr_profile(r, ro0, a, gamma, beta, alpha, dim):
 def get_dmdr(folder, i, r_e, dim):
 
     density_cs = pd.read_csv(folder / 'def-dc.dat', delimiter='\s+', index_col=0, header=None)
-    xc, yc, zc = density_cs.iloc[i, 1:4]
+    xc, yc, zc = density_cs.loc[i, 2:4]
     
     cluster = limit_by_status(folder, i)
     

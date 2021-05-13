@@ -9,13 +9,18 @@ from lmfit import Model
 
 def average_random(snap, r_e, gamma_ini, sfe, dim):
     dmdr = 0
+    n_randoms = 9
     for random in [11, 12, 13, 21, 22, 23, 31, 32, 33]:
         if gamma_ini == '':
             folder = Path(f'{INPUT_DIR}/run-{sfe}-{random}')
         else:
             folder = Path(f'{INPUT_DIR}/run-{gamma_ini}-{sfe}-{random}')
-        dmdr += f.get_dmdr(folder, snap, r_e, dim)
-    return dmdr / 9
+        try: 
+            dmdr += f.get_dmdr(folder, snap, r_e, dim)
+        except: 
+            n_randoms -= 1
+
+    return dmdr / n_randoms
 
 parser = argparse.ArgumentParser(description="App for dmdr calculation!")
 parser.add_argument("gamma_ini", help="The model's initial gamma")
@@ -44,7 +49,7 @@ try:
 except:
     os.mkdir(OUTPUT_DIR)
 
-r_e = np.geomspace(15e-2, 25, 101)
+r_e = np.geomspace(3e-1, 12, 51)
 output = pd.DataFrame(data={'r':r_e})
 popts = pd.DataFrame()
 dmdr_ = 0
