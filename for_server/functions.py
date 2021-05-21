@@ -44,26 +44,40 @@ def dmdr_profile(r, ro0, a, gamma, beta, alpha, dim):
 def log_dmdr_profile(r, ro0, a, gamma, beta, alpha, dim):
     return np.log10(dmdr_profile(r, ro0, a, gamma, beta, alpha, dim))
 
-
-def get_dmdr(folder, i, r_e, dim):
-
-    density_cs = pd.read_csv(folder / 'def-dc.dat', delimiter='\s+', index_col=0, header=None)
-    xc, yc, zc = density_cs.loc[i, 2:4]
-    
-    cluster = limit_by_status(folder, i)
-    
+def get_r_list(cluster, xc, yc, zc, dim):
     if dim == 2:
-        r_sort = np.sort(np.sqrt((cluster['x'] - xc) ** 2 + 
-                                 (cluster['y'] - yc) ** 2))
+        return list(np.sqrt((cluster['x'] - xc) ** 2 + 
+                            (cluster['y'] - yc) ** 2))
     elif dim == 3:
-        r_sort = np.sort(np.sqrt((cluster['x'] - xc) ** 2 + 
-                                 (cluster['y'] - yc) ** 2 + 
-                                 (cluster['z'] - zc) ** 2))
+        return list(np.sqrt((cluster['x'] - xc) ** 2 + 
+                            (cluster['y'] - yc) ** 2 + 
+                            (cluster['z'] - zc) ** 2))
     else: raise ValueError ('Wrong dimension')
-    
-    n = np.arange(len(r_sort)) + 1
+
+def get_dmdr(INPUT_DIR, snap, r_e, gamma_ini, sfe, dim, n_time):
+
+    n_randoms = 9 * (2 * n_time + 1)
+    r =[]
+
+    for random in [11, 12, 13, 21, 22, 23, 31, 32, 33]:
+
+        if gamma_ini == '':
+            folder = Path(f'{INPUT_DIR}/run-{sfe}-{random}')
+        else:
+            folder = Path(f'{INPUT_DIR}/run-{gamma_ini}-{sfe}-{random}')
+
+        density_cs = pd.read_csv(folder / 'def-dc.dat', delimiter='\s+', index_col=0, header=None)
+        for i in range(-n_time, n_time + 1):
+            try:
+                xc, yc, zc = density_cs.loc[snap + i, 2:4]
+                cluster = limit_by_status(folder, snap + i)
+                r += get_r_list(cluster, xc, yc, zc, dim)
+            except: 
+                n_randoms -= 1
+    r_sort = np.sort(np.array(r))
+    n = (np.arange(len(r_sort)) + 1) / n_randoms
     n_smoothed = csaps(r_sort, n, smooth=1 - 1e-4)
-    dmdr = n_smoothed(r_e, 1)
+    dmdr= n_smoothed(r_e, 1)
     
     mask_negative = (dmdr <= 0)
     dmdr[mask_negative] = 1e-6
@@ -92,7 +106,7 @@ def limit_by_status(folder, i):
 
 def normalize_cluster(cluster):
     
-    R_norm = 1.2262963200 #pc
+    R_norm = 1.2262963200 # 0.93985917 1.2262963200  #pc
     V_norm = 4.587330615 #km/s
     M_norm = 6.0e3 #Msun
     

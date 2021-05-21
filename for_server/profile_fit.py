@@ -7,21 +7,6 @@ from pathlib import Path
 import functions as f
 from lmfit import Model
 
-def average_random(snap, r_e, gamma_ini, sfe, dim):
-    dmdr = 0
-    n_randoms = 9
-    for random in [11, 12, 13, 21, 22, 23, 31, 32, 33]:
-        if gamma_ini == '':
-            folder = Path(f'{INPUT_DIR}/run-{sfe}-{random}')
-        else:
-            folder = Path(f'{INPUT_DIR}/run-{gamma_ini}-{sfe}-{random}')
-        try: 
-            dmdr += f.get_dmdr(folder, snap, r_e, dim)
-        except: 
-            n_randoms -= 1
-
-    return dmdr / n_randoms
-
 parser = argparse.ArgumentParser(description="App for dmdr calculation!")
 parser.add_argument("gamma_ini", help="The model's initial gamma")
 parser.add_argument("sfe", help="The model's star formation efficiency")
@@ -52,17 +37,13 @@ except:
 r_e = np.geomspace(3e-1, 12, 51)
 output = pd.DataFrame(data={'r':r_e})
 popts = pd.DataFrame()
-dmdr_ = 0
-n = 3
+n_time = 3
 
-for i in range(-n, n + 1):
-    dmdr_ += average_random(snap + i, r_e, gamma_ini, sfe, dim) / (2 * n + 1)
-
-output['dmdr'] = dmdr_
+output['dmdr'] = f.get_dmdr(INPUT_DIR, snap, r_e, gamma_ini, sfe, dim, n_time)
 
 fmodel = Model(f.dmdr_profile)
 fmodel.set_param_hint('ro0',   value=500,  min=1,     max=40000.0)
-fmodel.set_param_hint('a',     value=1.0,  min=0.2,   max=10.0)
+fmodel.set_param_hint('a',     value=1.0,  min=0.1,   max=10.0)
 fmodel.set_param_hint('gamma', value=0.1,  min=1e-10, max=3.5)
 fmodel.set_param_hint('beta',  value=4.0,  min=2.0,   max=7.5)
 fmodel.set_param_hint('alpha', value=2.0,  min=0.5,   max=6.0)
