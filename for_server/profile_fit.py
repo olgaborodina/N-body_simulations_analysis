@@ -34,7 +34,30 @@ try:
 except:
     os.mkdir(OUTPUT_DIR)
 
-r_e = np.geomspace(3e-1, 12, 51)
+r_min_d = 0.05 # r min for dmdr calculation
+r_max_d = 25   # r max for dmdr calculation
+
+BOUNDS_DIR = Path(f'./bounds/gamma={gamma_ini}')
+bounds = pd.read_csv(BOUNDS_DIR / f'r_bounds_gamma={gamma_ini}_{sfe}_{dim}_0.csv', delimiter=' ')
+r_min_b = bounds.loc[snap, 'r_min'] # r min from boundary calculation
+r_max_b = bounds.loc[snap, 'r_max'] # r max from boundary calculation
+
+
+# r min and max for fitting
+if np.isnan(r_min_b):
+    r_min_f = r_min_d
+else:
+    r_min_f = np.max(r_min_d, r_min_b)
+
+if np.isnan(r_max_b):
+    r_max_f = r_max_d
+else:
+    r_max_f = np.min(r_max_d, r_max_b)
+
+
+r_e = np.geomspace(r_min_d, r_max_d, 101)
+mask_fit = ((r_e >= r_min_f) & (r_e <= r_max_f))
+
 output = pd.DataFrame(data={'r':r_e})
 popts = pd.DataFrame()
 n_time = 3
@@ -59,7 +82,7 @@ params['dim'].value = dim
 # params['beta'].vary = False
 # params['beta'].value = 4
 
-best_fit = fmodel.fit(data=output['dmdr'], params=params, r=r_e)
+best_fit = fmodel.fit(data=output[mask_fit]['dmdr'], params=params, r=r_e[mask_fit])
 
 ro0, a, gamma, beta, alpha, dim = list(best_fit.params.valuesdict().values())
 
