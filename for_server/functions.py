@@ -40,6 +40,18 @@ def dmdr_profile(r, ro0, a, gamma, beta, alpha, dim):
     elif dim == 3:
         return dehnen_profile(r, ro0, a, gamma, beta, alpha, dim) * 4 * np.pi * r ** 2
     else: raise ValueError ('Wrong dimension')
+
+def dn_profile(r, ro0, a, gamma, beta, alpha, dim):
+    r_mean, dr = np.diff(r)/2 + r[:-1], np.diff(r)
+    rho = dehnen_profile(r_mean, ro0, a, gamma, beta, alpha, dim) 
+    if dim == 2:
+        return rho * 2 * np.pi * r_mean * dr
+    elif dim == 3:
+        return rho * 4 * np.pi * r_mean ** 2 * dr
+    else: raise ValueError ('Wrong dimension')
+
+def log_dn_profile(r, ro0, a, gamma, beta, alpha, dim):
+    return np.log10(dn_profile(r, ro0, a, gamma, beta, alpha, dim))
         
 def log_dmdr_profile(r, ro0, a, gamma, beta, alpha, dim):
     return np.log10(dmdr_profile(r, ro0, a, gamma, beta, alpha, dim))
@@ -78,11 +90,39 @@ def get_dmdr(INPUT_DIR, snap, r_e, gamma_ini, sfe, dim, n_time):
     n = (np.arange(len(r_sort)) + 1) / n_randoms
     n_smoothed = csaps(r_sort, n, smooth=1 - 1e-4)
     dmdr= n_smoothed(r_e, 1)
-    
+
     mask_negative = (dmdr <= 0)
     dmdr[mask_negative] = 1e-6
     
-    return dmdr
+    return dmdr, r_mean
+
+def get_dn(INPUT_DIR, snap, random, r_e, gamma_ini, sfe, dim, n_time):
+
+    n_randoms = 2 * n_time + 1
+    r =[]
+
+    if gamma_ini == '':
+        folder = Path(f'{INPUT_DIR}/run-{sfe}-{random}')
+    else:
+        folder = Path(f'{INPUT_DIR}/run-{gamma_ini}-{sfe}-{random}')
+
+    for i in range(-n_time, n_time + 1):
+        try:
+            density_cs = pd.read_csv(folder / 'def-dc.dat', delimiter='\s+', index_col=0, header=None)
+            xc, yc, zc = density_cs.loc[snap + i, 2:4]
+            cluster = limit_by_status(folder, snap + i)
+            r += get_r_list(cluster, xc, yc, zc, dim)
+        except: 
+            n_randoms -= 1
+
+    dn, _ = np.histogram(r, r_e)
+    r_mean = np.diff(r_e) / 2 + r_e[:-1]
+    dn = dn / n_randoms
+    
+    mask_negative = (dn == 0)
+    dn[mask_negative] = 1e-6
+    
+    return dn, r
 
 def limit_by_status(folder, i):
     names = np.array(['M', 'x', 'y', 'z', 'vx', 'vy', 'vz', 'M_ini', 'Z', 'Nan', 'Event',
@@ -106,7 +146,7 @@ def limit_by_status(folder, i):
 
 def normalize_cluster(cluster):
     
-    R_norm = 1.2262963200 # 0.93985917 1.2262963200  #pc
+    R_norm =  1.2262963200 # 0.93985917 1.2262963200  #pc
     V_norm = 4.587330615 #km/s
     M_norm = 6.0e3 #Msun
     
